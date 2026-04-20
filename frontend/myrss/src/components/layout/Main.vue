@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 
+import Content from './Content.vue';
 import Menu from './Menu.vue';
 
 </script>
@@ -7,11 +8,11 @@ import Menu from './Menu.vue';
 <template>
   <div>
     <el-splitter>
-      <el-splitter-panel size="20%">
+      <el-splitter-panel size="30%">
         <div class="demo-panel"><Menu /></div>
       </el-splitter-panel>
       <el-splitter-panel :min="200">
-        <div class="demo-panel">2</div>
+        <div class="demo-panel"><Content /></div>
       </el-splitter-panel>
     </el-splitter>
   </div>
@@ -19,9 +20,7 @@ import Menu from './Menu.vue';
 
 <style scoped>
 .demo-panel {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   height: 100%;
+  width: 100%;
 }
 </style>

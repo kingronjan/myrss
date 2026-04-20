@@ -3,15 +3,15 @@
 <template>
 
     <div>
-        <h1>My RSS</h1>
+        <h1>这是一个头部组件</h1>
     </div>
 
 </template>
 
 <style scoped>
 
-h1 {
-    margin-top: 2%;
+div {
+    margin-left: 2%;
 }
 
 </style>
