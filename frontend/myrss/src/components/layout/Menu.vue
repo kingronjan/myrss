@@ -1,28 +1,48 @@
 <script lang="ts" setup>
-import {
-  Document,
-  Menu as IconMenu,
-  Location,
-  Setting,
-} from '@element-plus/icons-vue'
+import { onMounted, ref } from 'vue'
+import { Document, Menu as IconMenu } from '@element-plus/icons-vue'
+import { getFeedSources, type FeedSource } from '@/api/feed'
 
+const sources = ref<FeedSource[]>([])
+const loading = ref(false)
+
+const fetchSources = async () => {
+  loading.value = true
+  try {
+    const data = await getFeedSources()
+    sources.value = Array.isArray(data) ? data : []
+  } catch (error) {
+    console.error('Failed to fetch sources:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchSources()
+})
 </script>
 
 <template>
-      <el-menu
-        default-active="2"
-        class="el-menu-vertical-demo"
-      >
-        <el-sub-menu index="1">
-          <template #title>
-            <el-icon><location /></el-icon>
-            <span>Sources</span>
-          </template>
-          <el-menu-item index="1-1">item one</el-menu-item>
-          <el-menu-item index="1-2">item two</el-menu-item>
-        </el-sub-menu>
-
-      </el-menu>
+  <el-menu
+    default-active="0"
+    class="el-menu-vertical-demo"
+    v-loading="loading"
+    :default-openeds="['sources-menu']"
+  >
+    <el-sub-menu index="sources-menu">
+      <template #title>
+        <el-icon><icon-menu /></el-icon>
+        <span>订阅源</span>
+      </template>
+      <el-menu-item v-for="source in sources" :key="source.id" :index="String(source.id)">
+        <el-icon><document /></el-icon>
+        <template #title>
+          <span>{{ source.description || source.url }}</span>
+        </template>
+      </el-menu-item>
+    </el-sub-menu>
+  </el-menu>
 </template>
 
 <style scoped>
@@ -32,4 +52,3 @@ import {
   height: 100%;
 }
 </style>
-
