@@ -1,0 +1,18 @@
+[project]
+name = "myrss"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "aiosmtplib>=5.1.0",
+    "aiosqlite>=0.22.1",
+    "alembic>=1.18.4",
+    "fastapi[standard]>=0.136.0",
+    "feedparser>=6.0.12",
+    "httpx>=0.28.1",
+    "pydantic-settings>=2.13.1",
+    "sqlalchemy>=2.0.49",
+    "sqlmodel>=0.0.38",
+    "starlette>=1.0.0",
+]
