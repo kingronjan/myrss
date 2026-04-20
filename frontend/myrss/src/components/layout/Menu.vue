@@ -2,9 +2,11 @@
 import { onMounted, ref } from 'vue'
 import { Document, Menu as IconMenu } from '@element-plus/icons-vue'
 import { getFeedSources, type FeedSource } from '@/api/feed'
+import { useFeedStore } from '@/stores/feed'
 
 const sources = ref<FeedSource[]>([])
 const loading = ref(false)
+const feedStore = useFeedStore()
 
 const fetchSources = async () => {
   loading.value = true
@@ -16,6 +18,10 @@ const fetchSources = async () => {
   } finally {
     loading.value = false
   }
+}
+
+const handleSelect = (sourceId: number) => {
+  feedStore.fetchFeeds(sourceId)
 }
 
 onMounted(() => {
@@ -35,7 +41,12 @@ onMounted(() => {
         <el-icon><icon-menu /></el-icon>
         <span>订阅源</span>
       </template>
-      <el-menu-item v-for="source in sources" :key="source.id" :index="String(source.id)">
+      <el-menu-item
+        v-for="source in sources"
+        :key="source.id"
+        :index="String(source.id)"
+        @click="handleSelect(source.id)"
+      >
         <el-icon><document /></el-icon>
         <template #title>
           <span>{{ source.description || source.url }}</span>
