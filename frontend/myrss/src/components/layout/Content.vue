@@ -1,18 +1,34 @@
 <script lang="ts" setup>
 import { useFeedStore } from '@/stores/feed'
-import { computed } from 'vue'
+import { computed, ref, watch, nextTick } from 'vue'
+import { ArrowLeft } from '@element-plus/icons-vue'
 
 const feedStore = useFeedStore()
-const maxSummaryLength = 100
+const scrollContainer = ref<HTMLElement | null>(null)
+
+const scrollToTop = () => {
+  nextTick(() => {
+    if (scrollContainer.value) {
+      scrollContainer.value.scrollTop = 0
+    }
+  })
+}
+
+// 监听详情切换，重置滚动条
+watch(() => feedStore.selectedFeed, () => {
+  scrollToTop()
+})
+
+// 监听列表数据变化（切换 source），重置滚动条
+watch(() => feedStore.feeds, () => {
+  scrollToTop()
+})
 
 const stripHtml = (html: string) => {
   if (!html) return ''
-  // 1. 移除 HTML 标签
   let text = html.replace(/<[^>]*>?/gm, '')
-  // 2. 移除空白行：将多个连续的换行/空白符替换为单个换行，并去除首尾空白
   text = text.replace(/^\s*[\r\n]/gm, '').trim()
-  // 3. 截取前 maxSummaryLength 个字符
-  return text.length > maxSummaryLength ? text.substring(0, maxSummaryLength) + '...' : text
+  return text.length > 300 ? text.substring(0, 300) + '...' : text
 }
 
 const formatDate = (dateStr: string) => {
@@ -25,31 +41,57 @@ const openLink = (url: string) => {
   window.open(url, '_blank')
 }
 
+const selectFeed = (item: any) => {
+  feedStore.selectedFeed = item
+}
+
+const goBack = () => {
+  feedStore.selectedFeed = null
+}
+
 const feeds = computed(() => feedStore.feeds)
 const loading = computed(() => feedStore.loading)
+const selectedFeed = computed(() => feedStore.selectedFeed)
 </script>
 
 <template>
-  <div class="content-container" v-loading="loading">
-    <el-empty v-if="feeds.length === 0 && !loading" description="暂无数据" />
-    <div v-else class="feed-list">
-      <el-card v-for="item in feeds" :key="item.id" class="feed-item">
-        <template #header>
-          <div class="card-header">
-            <span class="title">{{ item.title }}</span>
-            <span class="time">{{ formatDate(item.published) }}</span>
-          </div>
-        </template>
-        <div class="summary">
-          {{ stripHtml(item.summary) }}
+  <div ref="scrollContainer" class="content-container" v-loading="loading">
+    <!-- 详情视图 (只在非加载状态下显示详情) -->
+    <div v-if="selectedFeed && !loading" class="feed-detail">
+      <div class="detail-header">
+        <el-button :icon="ArrowLeft" @click="goBack" plain size="small">返回列表</el-button>
+        <h2 class="detail-title">{{ selectedFeed.title }}</h2>
+        <div class="detail-meta">
+          <span>发布时间：{{ formatDate(selectedFeed.published) }}</span>
+          <el-button type="primary" link @click="openLink(selectedFeed.link)">查看原文</el-button>
         </div>
-        <div class="footer">
-          <el-button type="primary" link @click="openLink(item.link)">
-            查看原文
-          </el-button>
-        </div>
-      </el-card>
+      </div>
+      <el-divider />
+      <div class="detail-body" v-html="selectedFeed.summary"></div>
     </div>
+
+    <!-- 列表视图 -->
+    <template v-else>
+      <el-empty v-if="feeds.length === 0 && !loading" description="暂无数据" />
+      <div v-else class="feed-list">
+        <el-card v-for="item in feeds" :key="item.id" class="feed-item">
+          <template #header>
+            <div class="card-header">
+              <span class="title clickable" @click="selectFeed(item)">{{ item.title }}</span>
+              <span class="time">{{ formatDate(item.published) }}</span>
+            </div>
+          </template>
+          <div class="summary">
+            {{ stripHtml(item.summary) }}
+          </div>
+          <div class="footer">
+            <el-button type="primary" link @click="openLink(item.link)">
+              查看原文
+            </el-button>
+          </div>
+        </el-card>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -60,6 +102,7 @@ const loading = computed(() => feedStore.loading)
   overflow-y: auto;
 }
 
+/* 列表样式 */
 .feed-list {
   display: flex;
   flex-direction: column;
@@ -81,6 +124,17 @@ const loading = computed(() => feedStore.loading)
   font-size: 1.1em;
 }
 
+.title.clickable {
+  cursor: pointer;
+  color: var(--el-color-primary);
+  transition: opacity 0.2s;
+}
+
+.title.clickable:hover {
+  text-decoration: underline;
+  opacity: 0.8;
+}
+
 .time {
   color: #999;
   font-size: 0.9em;
@@ -97,5 +151,54 @@ const loading = computed(() => feedStore.loading)
 .footer {
   display: flex;
   justify-content: flex-end;
+}
+
+/* 详情页样式 */
+.feed-detail {
+  max-width: 800px;
+  margin: 0 auto;
+  padding-bottom: 50px;
+}
+
+.detail-header {
+  margin-bottom: 20px;
+}
+
+.detail-title {
+  margin: 20px 0 10px;
+  font-size: 1.8em;
+  line-height: 1.4;
+}
+
+.detail-meta {
+  color: #999;
+  font-size: 0.9em;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.detail-body {
+  line-height: 1.8;
+  font-size: 1.1em;
+  color: var(--el-text-color-primary);
+}
+
+/* 深度选择器确保渲染出的 HTML 图片和内容不溢出 */
+.detail-body :deep(img) {
+  max-width: 100%;
+  height: auto;
+}
+
+.detail-body :deep(pre) {
+  background: #f4f4f4;
+  padding: 15px;
+  border-radius: 4px;
+  overflow-x: auto;
+}
+
+/* 暗黑模式适配预览（如果项目支持） */
+:root.dark .detail-body :deep(pre) {
+  background: #2d2d2d;
 }
 </style>

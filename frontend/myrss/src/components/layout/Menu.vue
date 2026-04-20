@@ -21,6 +21,7 @@ const fetchSources = async () => {
 }
 
 const handleSelect = (sourceId: number) => {
+  feedStore.selectedFeed = null
   feedStore.fetchFeeds(sourceId)
 }
 
