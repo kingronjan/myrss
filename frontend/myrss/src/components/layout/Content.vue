@@ -3,13 +3,16 @@ import { useFeedStore } from '@/stores/feed'
 import { computed } from 'vue'
 
 const feedStore = useFeedStore()
+const maxSummaryLength = 100
 
 const stripHtml = (html: string) => {
   if (!html) return ''
-  // 移除 HTML 标签
-  const text = html.replace(/<[^>]*>?/gm, '')
-  // 截取前 300 个字符
-  return text.length > 300 ? text.substring(0, 300) + '...' : text
+  // 1. 移除 HTML 标签
+  let text = html.replace(/<[^>]*>?/gm, '')
+  // 2. 移除空白行：将多个连续的换行/空白符替换为单个换行，并去除首尾空白
+  text = text.replace(/^\s*[\r\n]/gm, '').trim()
+  // 3. 截取前 maxSummaryLength 个字符
+  return text.length > maxSummaryLength ? text.substring(0, maxSummaryLength) + '...' : text
 }
 
 const formatDate = (dateStr: string) => {
