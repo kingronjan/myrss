@@ -26,8 +26,11 @@ watch(() => feedStore.feeds, () => {
 
 const stripHtml = (html: string) => {
   if (!html) return ''
+  // 1. 移除 HTML 标签
   let text = html.replace(/<[^>]*>?/gm, '')
+  // 2. 移除空白行
   text = text.replace(/^\s*[\r\n]/gm, '').trim()
+  // 3. 截取前 300 个字符
   return text.length > 300 ? text.substring(0, 300) + '...' : text
 }
 
@@ -49,6 +52,12 @@ const goBack = () => {
   feedStore.selectedFeed = null
 }
 
+const sanitizeHtml = (html: string) => {
+  if (!html) return ''
+  // 移除 <script> 标签及其内容
+  return html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+}
+
 const feeds = computed(() => feedStore.feeds)
 const loading = computed(() => feedStore.loading)
 const selectedFeed = computed(() => feedStore.selectedFeed)
@@ -67,7 +76,7 @@ const selectedFeed = computed(() => feedStore.selectedFeed)
         </div>
       </div>
       <el-divider />
-      <div class="detail-body" v-html="selectedFeed.summary"></div>
+      <div class="detail-body" v-html="sanitizeHtml(selectedFeed.summary)"></div>
     </div>
 
     <!-- 列表视图 -->
@@ -182,6 +191,11 @@ const selectedFeed = computed(() => feedStore.selectedFeed)
   line-height: 1.8;
   font-size: 1.1em;
   color: var(--el-text-color-primary);
+}
+
+.detail-body :deep(p) {
+  margin: 0;
+  padding-bottom: 1.2em;
 }
 
 /* 深度选择器确保渲染出的 HTML 图片和内容不溢出 */
