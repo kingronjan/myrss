@@ -16,3 +16,6 @@ wheels/
 # ide
 .idea
 .ipynb_checkpoints
+
+# frontend
+static

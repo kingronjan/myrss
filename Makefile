@@ -25,7 +25,11 @@ db-update: migrations migrate
 
 # 运行 FastAPI 开发服务器
 dev:
-	uv run fastapi dev
+	uv run fastapi dev --reload-dir app
+
+# 构建
+build:
+	cd frontend/myrss && npm run build
 
 # 帮助信息
 help:
