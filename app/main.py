@@ -8,12 +8,15 @@ from starlette.responses import FileResponse
 from starlette.staticfiles import StaticFiles
 
 from app.api import response
-from app.api.endpoints import feed, email
+from app.api.routes import feed, email
 from app.core.config import settings
 
 app = fastapi.FastAPI()
 
-logging.basicConfig(level=settings.LOG_LEVEL, format=settings.LOG_FORMAT, )
+logging.basicConfig(
+    level=settings.LOG_LEVEL,
+    format=settings.LOG_FORMAT,
+)
 
 # routers
 app.include_router(feed.router)
@@ -45,6 +48,6 @@ async def http_exception_handler(request: Request, exc: HTTPException):
     return response.failed(message=str(exc), status_code=exc.status_code)
 
 
-@app.get('/')
+@app.get("/")
 async def index():
     return FileResponse("static/index.html")

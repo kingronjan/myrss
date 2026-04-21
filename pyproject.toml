@@ -16,3 +16,7 @@ dependencies = [
     "sqlmodel>=0.0.38",
     "starlette>=1.0.0",
 ]
+
+[tool.ruff.lint]
+ignore = ["E712"]
+

@@ -9,7 +9,6 @@ from app.api import response
 
 
 class UnifiedAPIRoute(APIRoute):
-
     def get_route_handler(self) -> Callable[[Request], Coroutine[Any, Any, Response]]:
         raw_handler = super().get_route_handler()
 
