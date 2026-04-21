@@ -53,6 +53,17 @@ async def update_source(
     return response.success(message="Source updated successfully")
 
 
+@router.delete("/source/{source_id}")
+async def delete_source(
+    db: SessionDep,
+    source_id: int,
+):
+    stmt = FeedSource.stmt().delete().where(FeedSource.id == source_id)
+    await db.execute(stmt)
+    await db.commit()
+    return response.success(message="Source deleted successfully")
+
+
 @router.post("/source/sync")
 async def sync_source(db: SessionDep, source_id: int, tasks: BackgroundTasks):
     stmt = FeedSource.stmt().select().where(FeedSource.id == source_id)
