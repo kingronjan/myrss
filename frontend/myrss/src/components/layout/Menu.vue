@@ -27,14 +27,8 @@ const handleSelect = (sourceId: number) => {
   feedStore.fetchFeeds(sourceId)
 }
 
-const handleEdit = (source: FeedSource) => {
-  ElMessage.info(`编辑订阅源: ${source.description || source.url}`)
-}
-
-const handleDelete = (source: FeedSource) => {
-  // In a real app, you'd call an API here and then refresh the list
-  // For now, we just simulate the removal for demonstration
-  sources.value = sources.value.filter(s => s.id !== source.id)
+const handleRefresh = () => {
+  fetchSources()
 }
 
 onMounted(() => {
@@ -63,8 +57,8 @@ onMounted(() => {
       >
         <SourceItem
           :source="source"
-          @edit="handleEdit"
-          @delete="handleDelete"
+          @updated="handleRefresh"
+          @deleted="handleRefresh"
           @synced="() => {}"
         />
       </el-menu-item>

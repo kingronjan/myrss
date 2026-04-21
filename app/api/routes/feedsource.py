@@ -5,6 +5,7 @@ from app.api.routes.route import APIRouter
 from app.db.session import SessionDep
 from app.exceptions import RecordNotFoundError
 from app.models.feed import FeedSource
+from app.models.schemas import FeedSourceUpdate
 from app.services.feed import sync_feeds
 
 router = APIRouter(
@@ -32,14 +33,13 @@ async def add_source(db: SessionDep, url: str, description: str | None = None):
 async def update_source(
     db: SessionDep,
     source_id: int,
-    url: str | None = None,
-    description: str | None = None,
+    source_in: FeedSourceUpdate,
 ):
     stmt = (
         FeedSource.stmt()
         .update()
         .where(FeedSource.id == source_id)
-        .values(url=url, description=description)
+        .values(**source_in.model_dump(exclude_unset=True))
     )
     await db.execute(stmt)
     await db.commit()

@@ -43,8 +43,24 @@ export const getFeeds = (sourceId: number): Promise<FeedItem[]> => {
 }
 
 /**
- * 同步指定订阅源的 feed
+ * 更新订阅源信息
  * @param sourceId 订阅源 ID
+ * @param data 更新的数据
+ */
+export const updateFeedSource = (sourceId: number, data: { description: string, url: string }): Promise<any> => {
+  return request.put(`/feed-source/${sourceId}`, data)
+}
+
+/**
+ * 删除订阅源
+ * @param sourceId 订阅源 ID
+ */
+export const deleteFeedSource = (sourceId: number): Promise<any> => {
+  return request.delete(`/feed-source/${sourceId}`)
+}
+
+/**
+ * 同步指定订阅源的 feed
  */
 export const syncFeed = (sourceId: number): Promise<any> => {
   return request.post('/feed-source/sync', null, { params: { source_id: sourceId } })

@@ -1,23 +1,42 @@
 <script lang="ts" setup>
-import { ref, onUnmounted } from 'vue'
+import { ref, onUnmounted, reactive } from 'vue'
 import { Document, Refresh, Edit, Delete, Loading } from '@element-plus/icons-vue'
-import { syncFeed, getSyncStatus, type FeedSource } from '@/api/feed'
+import { syncFeed, getSyncStatus, updateFeedSource, deleteFeedSource, type FeedSource } from '@/api/feed'
 import { useFeedStore } from '@/stores/feed'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 
 const props = defineProps<{
   source: FeedSource
 }>()
 
 const emit = defineEmits<{
-  (e: 'edit', source: FeedSource): void
-  (e: 'delete', source: FeedSource): void
+  (e: 'updated'): void
+  (e: 'deleted'): void
   (e: 'synced'): void
 }>()
 
 const isSyncing = ref(false)
 const feedStore = useFeedStore()
 let pollInterval: ReturnType<typeof setInterval> | null = null
+
+// 编辑相关
+const editDialogVisible = ref(false)
+const editFormRef = ref<FormInstance>()
+const editForm = reactive({
+  description: '',
+  url: ''
+})
+
+const rules = reactive<FormRules>({
+  description: [
+    { required: true, message: '请输入订阅源名称', trigger: 'blur' },
+    { min: 1, max: 100, message: '长度在 1 到 100 个字符', trigger: 'blur' }
+  ],
+  url: [
+    { required: true, message: '请输入订阅源 URL', trigger: 'blur' },
+    { type: 'url', message: '请输入有效的 URL', trigger: 'blur' }
+  ]
+})
 
 const onContextMenu = () => {
   // 模拟一个全局点击，迫使其他已打开的 el-dropdown 关闭
@@ -30,12 +49,38 @@ const handleCommand = (command: string) => {
       handleSync()
       break
     case 'edit':
-      emit('edit', props.source)
+      openEditDialog()
       break
     case 'delete':
       handleDelete()
       break
   }
+}
+
+const openEditDialog = () => {
+  editForm.description = props.source.description
+  editForm.url = props.source.url
+  editDialogVisible.value = true
+}
+
+const handleEditSave = async () => {
+  if (!editFormRef.value) return
+  
+  await editFormRef.value.validate(async (valid) => {
+    if (valid) {
+      try {
+        await updateFeedSource(props.source.id, {
+          description: editForm.description,
+          url: editForm.url
+        })
+        ElMessage.success('更新成功')
+        editDialogVisible.value = false
+        emit('updated')
+      } catch (error) {
+        ElMessage.error('更新失败')
+      }
+    }
+  })
 }
 
 const handleSync = async () => {
@@ -93,9 +138,14 @@ const handleDelete = () => {
       cancelButtonText: '取消',
       type: 'warning',
     }
-  ).then(() => {
-    emit('delete', props.source)
-    ElMessage.success('已删除')
+  ).then(async () => {
+    try {
+      await deleteFeedSource(props.source.id)
+      ElMessage.success('已删除')
+      emit('deleted')
+    } catch (error) {
+      ElMessage.error('删除失败')
+    }
   }).catch(() => {})
 }
 
@@ -132,6 +182,37 @@ onUnmounted(() => {
         </el-dropdown-menu>
       </template>
     </el-dropdown>
+
+    <!-- 编辑对话框 -->
+    <el-dialog
+      v-model="editDialogVisible"
+      title="编辑订阅源"
+      width="500px"
+      append-to-body
+    >
+      <el-form
+        ref="editFormRef"
+        :model="editForm"
+        :rules="rules"
+        label-width="80px"
+        @submit.prevent
+      >
+        <el-form-item label="名称" prop="description">
+          <el-input v-model="editForm.description" placeholder="请输入订阅源名称" />
+        </el-form-item>
+        <el-form-item label="URL" prop="url">
+          <el-input v-model="editForm.url" placeholder="请输入 RSS 链接" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="editDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="handleEditSave">
+            确认
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
