@@ -2,7 +2,7 @@ from enum import Enum, IntEnum
 
 
 class DBType(str, Enum):
-    SQLITE = "sqlite"
+    SQLITE = 'sqlite'
 
 
 class ResponseCode(IntEnum):

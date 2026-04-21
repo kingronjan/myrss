@@ -3,11 +3,11 @@ from app.db.session import SessionDep
 from app.models.feed import Feed
 
 router = APIRouter(
-    prefix="/feed",
+    prefix='/feed',
 )
 
 
-@router.get("/")
+@router.get('/')
 async def get_source_feeds(db: SessionDep, source_id: int):
     stmt = Feed.stmt().select().where(Feed.source_id == source_id)
     result = await db.execute(stmt)

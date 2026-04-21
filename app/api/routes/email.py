@@ -5,11 +5,11 @@ from app.api import response
 from app.services import email
 
 router = APIRouter(
-    prefix="/email",
+    prefix='/email',
 )
 
 
-@router.post("/send-feeds")
+@router.post('/send-feeds')
 async def send_email(tasks: BackgroundTasks):
     tasks.add_task(email.send_feeds)
-    return response.success(message="Email sent!")
+    return response.success(message='Email sent!')

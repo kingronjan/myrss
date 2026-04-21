@@ -31,10 +31,12 @@ class Settings(BaseSettings):
     MAIL_SMTP_PORT: int | None = None
     MAIL_RECEIVER: str | None = None
 
-    model_config = SettingsConfigDict(case_sensitive=True,
-                                      env_file=BASE_DIR / '.env',
-                                      env_file_encoding='utf-8',
-                                      env_prefix='MYRSS_')
+    model_config = SettingsConfigDict(
+        case_sensitive=True,
+        env_file=BASE_DIR / '.env',
+        env_file_encoding='utf-8',
+        env_prefix='MYRSS_',
+    )
 
     @property
     def db_url(self) -> str:

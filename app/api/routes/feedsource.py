@@ -9,18 +9,18 @@ from app.models.schemas import FeedSourceUpdate
 from app.services.feed import sync_feeds
 
 router = APIRouter(
-    prefix="/feed-source",
+    prefix='/feed-source',
 )
 
 
-@router.get("/")
+@router.get('/')
 async def get_sources(db: SessionDep):
     stmt = FeedSource.stmt().select()
     result = await db.execute(stmt)
     return result.scalars().all()
 
 
-@router.post("/add")
+@router.post('/add')
 async def add_source(db: SessionDep, url: str, description: str | None = None):
     source = FeedSource(url=url, description=description)
     db.add(source)
@@ -29,7 +29,7 @@ async def add_source(db: SessionDep, url: str, description: str | None = None):
     return source
 
 
-@router.put("/{source_id}")
+@router.put('/{source_id}')
 async def update_source(
     db: SessionDep,
     source_id: int,
@@ -43,10 +43,10 @@ async def update_source(
     )
     await db.execute(stmt)
     await db.commit()
-    return response.success(message="Source updated successfully")
+    return response.success(message='Source updated successfully')
 
 
-@router.delete("/{source_id}")
+@router.delete('/{source_id}')
 async def delete_source(
     db: SessionDep,
     source_id: int,
@@ -54,10 +54,10 @@ async def delete_source(
     stmt = FeedSource.stmt().delete().where(FeedSource.id == source_id)
     await db.execute(stmt)
     await db.commit()
-    return response.success(message="Source deleted successfully")
+    return response.success(message='Source deleted successfully')
 
 
-@router.post("/sync")
+@router.post('/sync')
 async def sync_source(db: SessionDep, source_id: int, tasks: BackgroundTasks):
     stmt = FeedSource.stmt().select().where(FeedSource.id == source_id)
     result = await db.execute(stmt)
@@ -65,10 +65,10 @@ async def sync_source(db: SessionDep, source_id: int, tasks: BackgroundTasks):
     if source is None:
         raise RecordNotFoundError()
     tasks.add_task(sync_feeds, source)
-    return response.success(message="Task created successfully")
+    return response.success(message='Task created successfully')
 
 
-@router.get("/sync-status")
+@router.get('/sync-status')
 async def sync_status(db: SessionDep, source_id: int):
     stmt = FeedSource.stmt().select().where(FeedSource.id == source_id)
     result = await db.execute(stmt)

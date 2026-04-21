@@ -30,4 +30,4 @@ class Feed(BaseModel, table=True):
 
     @property
     def published_str(self):
-        return self.published.strftime("%Y-%m-%d")
+        return self.published.strftime('%Y-%m-%d')

@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 async def fetch_feeds(source: FeedSource) -> list[Feed]:
-    logger.debug(f"Fetching feeds for {source}")
+    logger.debug(f'Fetching feeds for {source}')
 
     async with httpx.AsyncClient() as client:
         resp = await client.get(source.url)
@@ -23,7 +23,7 @@ async def fetch_feeds(source: FeedSource) -> list[Feed]:
     feeds = []
 
     for entry in result.entries:
-        logger.debug("Fetched entry: %s", LazyRepr(entry, maxstring=20, maxdict=20))
+        logger.debug('Fetched entry: %s', LazyRepr(entry, maxstring=20, maxdict=20))
         published = datetime.fromtimestamp(mktime(entry.published_parsed))
         feed = Feed(
             title=entry.title,
@@ -52,10 +52,10 @@ async def sync_feeds(source: FeedSource) -> None:
 
     except httpx.ConnectTimeout:
         status = TaskStatus.FAILED
-        msg = "Connection timeout"
+        msg = 'Connection timeout'
 
     except Exception as e:
-        logger.exception(f"Source {source.id} sync failed", exc_info=e)
+        logger.exception(f'Source {source.id} sync failed', exc_info=e)
         status = TaskStatus.FAILED
         msg = str(e)
 

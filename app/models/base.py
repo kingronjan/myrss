@@ -13,20 +13,20 @@ class BaseModel(SQLModel):
     created_at: datetime = Field(
         sa_type=DateTime(timezone=True),
         sa_column_kwargs={
-            "server_default": func.now(),
-            "nullable": False,
+            'server_default': func.now(),
+            'nullable': False,
         },
     )
     updated_at: datetime = Field(
         sa_type=DateTime(timezone=True),
         sa_column_kwargs={
-            "server_default": func.now(),
-            "nullable": False,
-            "onupdate": func.now(),
+            'server_default': func.now(),
+            'nullable': False,
+            'onupdate': func.now(),
         },
     )
 
     @classmethod
     def stmt(cls) -> BaseStatement:
-        stmt_module = f"app.models.statement.{settings.db_type}"
+        stmt_module = f'app.models.statement.{settings.db_type}'
         return import_module(stmt_module).Statement(cls)
