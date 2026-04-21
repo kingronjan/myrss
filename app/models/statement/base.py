@@ -17,7 +17,7 @@ class BaseStatement:
         self.model = model
         self._default = (self.model,)
 
-    def upsert(self, model=None, by_field=None, update_fields=None):
+    def upsert(self, by_field=None, update_fields=None):
         raise NotImplementedError
 
     def select(self, *args):

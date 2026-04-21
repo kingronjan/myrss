@@ -7,7 +7,8 @@ import feedparser
 
 from app.models.feed import Feed, FeedSource
 from app.utils.misc import LazyRepr
-from app.db.session import SessionDep
+from app.db.session import exec_in_session
+from app.core.enums import TaskStatus
 
 logger = logging.getLogger(__name__)
 
@@ -37,8 +38,26 @@ async def fetch_feeds(source: FeedSource) -> list[Feed]:
     return feeds
 
 
-async def sync_feeds(db: SessionDep, source: FeedSource) -> None:
-    feeds = await fetch_feeds(source)
-    stmt = Feed.stmt().upsert(feeds)
-    await db.execute(stmt)
-    await db.commit()
+async def sync_feeds(source: FeedSource) -> None:
+    try:
+        stmt = FeedSource.stmt().update().values(sync_status=TaskStatus.RUNNING)
+        await exec_in_session(stmt)
+
+        feeds = await fetch_feeds(source)
+        stmt = Feed.stmt().upsert()
+        await exec_in_session(stmt, feeds)
+
+        status = TaskStatus.SUCCESS
+        msg = None
+
+    except httpx.ConnectTimeout:
+        status = TaskStatus.FAILED
+        msg = "Connection timeout"
+
+    except Exception as e:
+        logger.exception(f"Source {source.id} sync failed", exc_info=e)
+        status = TaskStatus.FAILED
+        msg = str(e)
+
+    stmt = FeedSource.stmt().update().values(sync_status=status, sync_msg=msg)
+    await exec_in_session(stmt)

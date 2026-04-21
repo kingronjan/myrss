@@ -7,6 +7,8 @@ export interface FeedSource {
   updated_at: string
   created_at: string
   deleted: boolean
+  sync_status?: number
+  sync_msg?: string
 }
 
 export interface FeedItem {
@@ -28,7 +30,7 @@ export interface FeedItem {
  * @returns {Promise<FeedSource[]>}
  */
 export const getFeedSources = (): Promise<FeedSource[]> => {
-  return request.get('/feed/sources')
+  return request.get('/feed-source')
 }
 
 /**
@@ -38,4 +40,20 @@ export const getFeedSources = (): Promise<FeedSource[]> => {
  */
 export const getFeeds = (sourceId: number): Promise<FeedItem[]> => {
   return request.get('/feed/', { params: { source_id: sourceId } })
+}
+
+/**
+ * 同步指定订阅源的 feed
+ * @param sourceId 订阅源 ID
+ */
+export const syncFeed = (sourceId: number): Promise<any> => {
+  return request.post('/feed-source/sync', null, { params: { source_id: sourceId } })
+}
+
+/**
+ * 获取同步状态
+ * @param sourceId 订阅源 ID
+ */
+export const getSyncStatus = (sourceId: number): Promise<FeedSource> => {
+  return request.get('/feed-source/sync-status', { params: { source_id: sourceId } })
 }

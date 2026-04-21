@@ -1,6 +1,6 @@
 ## get sources
 
-endpoint: get /feed/sources
+endpoint: get /feed-source
 
 response example:
 ```json
@@ -15,4 +15,3 @@ response example:
   }
 ]
 ```
-

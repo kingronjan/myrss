@@ -8,7 +8,7 @@ from starlette.responses import FileResponse
 from starlette.staticfiles import StaticFiles
 
 from app.api import response
-from app.api.routes import feed, email
+from app.api.routes import feed, email, feedsource
 from app.core.config import settings
 
 app = fastapi.FastAPI()
@@ -21,6 +21,7 @@ logging.basicConfig(
 # routers
 app.include_router(feed.router)
 app.include_router(email.router)
+app.include_router(feedsource.router)
 
 # frontend
 app.mount("/static", StaticFiles(directory="static"), name="static")

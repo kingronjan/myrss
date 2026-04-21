@@ -17,4 +17,10 @@ async def get_db() -> AsyncIterator[AsyncSession]:
         yield session
 
 
+async def exec_in_session(statement, *args):
+    async with create_session() as db:
+        await db.execute(statement, *args)
+        await db.commit()
+
+
 SessionDep = Annotated[AsyncSession, Depends(get_db)]

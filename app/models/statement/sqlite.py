@@ -4,8 +4,8 @@ from app.models.statement.base import BaseStatement
 
 
 class Statement(BaseStatement):
-    def upsert(self, model=None, by_field=None, update_fields=None):
-        stmt = insert(model or self.model)
+    def upsert(self, by_field=None, update_fields=None):
+        stmt = insert(self.model)
         index_elements = [by_field or self.model.id]
 
         if update_fields:
