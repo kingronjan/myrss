@@ -39,6 +39,6 @@ async def fetch_feeds(source: FeedSource) -> list[Feed]:
 
 async def sync_feeds(db: SessionDep, source: FeedSource) -> None:
     feeds = await fetch_feeds(source)
-    stmt = Feed.stmt.upsert(feeds)
+    stmt = Feed.stmt().upsert(feeds)
     await db.execute(stmt)
     await db.commit()

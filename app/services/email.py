@@ -29,7 +29,7 @@ async def send(subject, message):
 
 
 async def send_feeds(db: SessionDep):
-    stmt = Feed.stmt.select(FeedSource, Feed).where(Feed.source_id == FeedSource.id)
+    stmt = Feed.stmt().select(FeedSource, Feed).where(Feed.source_id == FeedSource.id)
     stmt = stmt.where(Feed.is_sent == False)
     stmt = stmt.order_by(Feed.source_id, Feed.published.desc())
 

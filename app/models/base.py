@@ -1,12 +1,10 @@
 from datetime import datetime
 from importlib import import_module
-from typing import ClassVar
 
 from sqlmodel import SQLModel, Field, DateTime, func
 
 from app.core.config import settings
 from app.models.statement.base import BaseStatement
-from app.utils.misc import cached_classpriority
 
 
 class BaseModel(SQLModel):
@@ -28,9 +26,7 @@ class BaseModel(SQLModel):
         },
     )
 
-    stmt: ClassVar[BaseStatement]
-
-    @cached_classpriority
+    @classmethod
     def stmt(cls) -> BaseStatement:
         stmt_module = f"app.models.statement.{settings.db_type}"
         return import_module(stmt_module).Statement(cls)

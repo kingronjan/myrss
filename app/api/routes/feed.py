@@ -12,6 +12,20 @@ router = APIRouter(
 )
 
 
+@router.get("/")
+async def get_source_feeds(db: SessionDep, source_id: int):
+    stmt = Feed.stmt().select().where(Feed.source_id == source_id)
+    result = await db.execute(stmt)
+    return result.scalars().all()
+
+
+@router.get("/sources")
+async def get_sources(db: SessionDep):
+    stmt = FeedSource.stmt().select()
+    result = await db.execute(stmt)
+    return result.scalars().all()
+
+
 @router.post("/source/add")
 async def add_source(db: SessionDep, url: str, description: str | None = None):
     source = FeedSource(url=url, description=description)
@@ -29,7 +43,8 @@ async def update_source(
     description: str | None = None,
 ):
     stmt = (
-        FeedSource.stmt.update()
+        FeedSource.stmt()
+        .update()
         .where(FeedSource.id == source_id)
         .values(url=url, description=description)
     )
@@ -38,23 +53,9 @@ async def update_source(
     return response.success(message="Source updated successfully")
 
 
-@router.get("/sources")
-async def get_sources(db: SessionDep):
-    stmt = FeedSource.stmt.select()
-    result = await db.execute(stmt)
-    return result.scalars().all()
-
-
-@router.get("/")
-async def get_source_feeds(db: SessionDep, source_id: int):
-    stmt = Feed.stmt.select().where(Feed.source_id == source_id)
-    result = await db.execute(stmt)
-    return result.scalars().all()
-
-
 @router.post("/source/sync")
 async def sync_source(db: SessionDep, source_id: int, tasks: BackgroundTasks):
-    stmt = FeedSource.stmt.select().where(FeedSource.id == source_id)
+    stmt = FeedSource.stmt().select().where(FeedSource.id == source_id)
     result = await db.execute(stmt)
     source = result.scalars().first()
     if source is None:
