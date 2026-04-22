@@ -1,12 +1,12 @@
-from email.mime.text import MIMEText
 from collections import defaultdict
 from datetime import datetime
+from email.mime.text import MIMEText
 
 import aiosmtplib
 
 from app.core.config import settings
 from app.db.session import create_session
-from app.models.feed import Feed, FeedSource
+from app.models.crud import get_unsent_feeds
 
 
 async def send(subject, message):
@@ -29,13 +29,8 @@ async def send(subject, message):
 
 
 async def send_feeds():
-    stmt = Feed.stmt().select(FeedSource, Feed).where(Feed.source_id == FeedSource.id)
-    stmt = stmt.where(Feed.is_sent == False)
-    stmt = stmt.order_by(Feed.source_id, Feed.published.desc())
-
     async with create_session() as db:
-        feeds = await db.execute(stmt)
-        feeds = feeds.all()
+        feeds = get_unsent_feeds(db)
 
     message = make_feed_email_message(feeds)
     date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')

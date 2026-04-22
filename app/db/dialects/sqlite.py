@@ -1,12 +1,12 @@
 from sqlalchemy.dialects.sqlite import insert
 
-from app.models.statement.base import BaseStatement
+from app.db.dialects.base import BaseDialect
 
 
-class Statement(BaseStatement):
-    def upsert(self, by_field=None, update_fields=None):
-        stmt = insert(self.model)
-        index_elements = [by_field or self.model.id]
+class Dialect(BaseDialect):
+    def upsert(self, entity, by_field=None, update_fields=None):
+        stmt = insert(entity)
+        index_elements = [by_field]
 
         if update_fields:
             set_ = {f: getattr(stmt.excluded, f) for f in update_fields}

@@ -9,6 +9,6 @@ router = APIRouter(
 
 @router.get('/')
 async def get_source_feeds(db: SessionDep, source_id: int):
-    stmt = Feed.stmt().select().where(Feed.source_id == source_id)
-    result = await db.execute(stmt)
-    return result.scalars().all()
+    stmt = db.dialect.select(Feed).where(Feed.source_id == source_id)
+    result = await db.scalars(stmt)
+    return result.all()

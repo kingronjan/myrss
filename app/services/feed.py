@@ -5,9 +5,10 @@ from time import mktime
 import httpx
 import feedparser
 
+from app.models.crud import upsert_feeds
 from app.models.feed import Feed, FeedSource
 from app.utils.misc import LazyRepr
-from app.db.session import exec_in_session
+from app.db.session import create_session
 from app.core.enums import TaskStatus
 
 logger = logging.getLogger(__name__)
@@ -39,14 +40,15 @@ async def fetch_feeds(source: FeedSource) -> list[Feed]:
 
 
 async def sync_feeds(source: FeedSource) -> None:
+    async with create_session() as db:
+        await _sync_feeds(source, db)
+
+
+async def _sync_feeds(source, db):
     try:
-        stmt = FeedSource.stmt().update().values(sync_status=TaskStatus.RUNNING)
-        await exec_in_session(stmt)
-
+        await db.set_values(source, sync_status=TaskStatus.RUNNING)
         feeds = await fetch_feeds(source)
-        stmt = Feed.stmt().upsert()
-        await exec_in_session(stmt, feeds)
-
+        await upsert_feeds(db, feeds)
         status = TaskStatus.SUCCESS
         msg = None
 
@@ -59,5 +61,4 @@ async def sync_feeds(source: FeedSource) -> None:
         status = TaskStatus.FAILED
         msg = str(e)
 
-    stmt = FeedSource.stmt().update().values(sync_status=status, sync_msg=msg)
-    await exec_in_session(stmt)
+    await db.set_values(source, sync_status=status, sync_msg=msg)

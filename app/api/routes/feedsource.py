@@ -5,7 +5,7 @@ from app.api.routes.route import APIRouter
 from app.db.session import SessionDep
 from app.exceptions import RecordNotFoundError
 from app.models.feed import FeedSource
-from app.models.schemas import FeedSourceUpdate
+from app.models.schemas import FeedSourceUpdate, FeedSourceCreate
 from app.services.feed import sync_feeds
 
 router = APIRouter(
@@ -15,18 +15,15 @@ router = APIRouter(
 
 @router.get('/')
 async def get_sources(db: SessionDep):
-    stmt = FeedSource.stmt().select()
-    result = await db.execute(stmt)
-    return result.scalars().all()
+    stmt = db.dialect.select(FeedSource).order_by(FeedSource.id.desc())
+    result = await db.scalars(stmt)
+    return result.all()
 
 
 @router.post('/add')
-async def add_source(db: SessionDep, url: str, description: str | None = None):
-    source = FeedSource(url=url, description=description)
-    db.add(source)
-    await db.commit()
-    await db.refresh(source)
-    return source
+async def add_source(db: SessionDep, source_in: FeedSourceCreate):
+    source = FeedSource(**source_in.model_dump(exclude_unset=True))
+    return await db.save(source)
 
 
 @router.put('/{source_id}')
@@ -35,14 +32,8 @@ async def update_source(
     source_id: int,
     source_in: FeedSourceUpdate,
 ):
-    stmt = (
-        FeedSource.stmt()
-        .update()
-        .where(FeedSource.id == source_id)
-        .values(**source_in.model_dump(exclude_unset=True))
-    )
-    await db.execute(stmt)
-    await db.commit()
+    values = source_in.model_dump(exclude_unset=True)
+    await db.update_by_pk(FeedSource, source_id, values)
     return response.success(message='Source updated successfully')
 
 
@@ -51,17 +42,15 @@ async def delete_source(
     db: SessionDep,
     source_id: int,
 ):
-    stmt = FeedSource.stmt().delete().where(FeedSource.id == source_id)
-    await db.execute(stmt)
-    await db.commit()
+    await db.delete_by_pk(FeedSource, source_id)
     return response.success(message='Source deleted successfully')
 
 
 @router.post('/sync')
 async def sync_source(db: SessionDep, source_id: int, tasks: BackgroundTasks):
-    stmt = FeedSource.stmt().select().where(FeedSource.id == source_id)
-    result = await db.execute(stmt)
-    source = result.scalars().first()
+    source = await db.get(FeedSource, source_id)
+    if source is None:
+        raise RecordNotFoundError()
     if source is None:
         raise RecordNotFoundError()
     tasks.add_task(sync_feeds, source)
@@ -70,9 +59,7 @@ async def sync_source(db: SessionDep, source_id: int, tasks: BackgroundTasks):
 
 @router.get('/sync-status')
 async def sync_status(db: SessionDep, source_id: int):
-    stmt = FeedSource.stmt().select().where(FeedSource.id == source_id)
-    result = await db.execute(stmt)
-    source = result.scalars().first()
+    source = await db.get(FeedSource, source_id)
     if source is None:
         raise RecordNotFoundError()
     return source

@@ -73,3 +73,11 @@ export const syncFeed = (sourceId: number): Promise<any> => {
 export const getSyncStatus = (sourceId: number): Promise<FeedSource> => {
   return request.get('/feed-source/sync-status', { params: { source_id: sourceId } })
 }
+
+/**
+ * 新增订阅源
+ * @param data 订阅源数据
+ */
+export const addFeedSource = (data: { description: string, url: string }): Promise<FeedSource> => {
+  return request.post('/feed-source/add', data)
+}
