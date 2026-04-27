@@ -15,6 +15,8 @@ export interface FeedItem {
   id: string
   title: string
   summary: string
+  content: string
+  cover_url: string
   published: string
   link: string
   source_id: number

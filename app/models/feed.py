@@ -24,6 +24,8 @@ class Feed(BaseModel, table=True):
     title: str = Field(max_length=500, nullable=False)
     link: str = Field(max_length=500, nullable=False)
     summary: Optional[str] = Field(sa_type=TEXT, nullable=True)
+    content: Optional[str] = Field(sa_type=TEXT, nullable=True)
+    cover_url: Optional[str] = Field(sa_type=TEXT, nullable=True)
     published: datetime = Field(nullable=False)
     is_sent: Optional[bool] = Field(nullable=False, default=False)
     is_read: Optional[bool] = Field(nullable=False, default=False)

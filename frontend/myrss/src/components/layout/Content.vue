@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { useFeedStore } from '@/stores/feed'
 import { computed, ref, watch, nextTick } from 'vue'
-import { ArrowLeft } from '@element-plus/icons-vue'
+import { ArrowLeft, Picture } from '@element-plus/icons-vue'
 
 const feedStore = useFeedStore()
 const scrollContainer = ref<HTMLElement | null>(null)
@@ -76,7 +76,7 @@ const selectedFeed = computed(() => feedStore.selectedFeed)
         </div>
       </div>
       <el-divider />
-      <div class="detail-body" v-html="sanitizeHtml(selectedFeed.summary)"></div>
+      <div class="detail-body" v-html="sanitizeHtml(selectedFeed.content)"></div>
     </div>
 
     <!-- 列表视图 -->
@@ -90,8 +90,23 @@ const selectedFeed = computed(() => feedStore.selectedFeed)
               <span class="time">{{ formatDate(item.published) }}</span>
             </div>
           </template>
-          <div class="summary">
-            {{ stripHtml(item.summary) }}
+          <div class="feed-body">
+            <div class="summary">
+              {{ stripHtml(item.summary) }}
+            </div>
+            <el-image
+              v-if="item.cover_url"
+              :src="item.cover_url"
+              fit="cover"
+              class="feed-cover"
+              lazy
+            >
+              <template #error>
+                <div class="image-slot">
+                  <el-icon><Picture /></el-icon>
+                </div>
+              </template>
+            </el-image>
           </div>
           <div class="footer">
             <el-button type="primary" link @click="openLink(item.link)">
@@ -149,17 +164,42 @@ const selectedFeed = computed(() => feedStore.selectedFeed)
   font-size: 0.9em;
 }
 
+.feed-body {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
 .summary {
+  flex: 1;
   color: #666;
   line-height: 1.6;
-  margin-bottom: 10px;
   white-space: pre-wrap;
   word-break: break-all;
+}
+
+.feed-cover {
+  width: 150px;
+  height: 100px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  border: 1px solid var(--el-border-color-lighter);
+}
+
+.image-slot {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  background: var(--el-fill-color-light);
+  color: var(--el-text-color-secondary);
 }
 
 .footer {
   display: flex;
   justify-content: flex-end;
+  margin-top: 10px;
 }
 
 /* 详情页样式 */

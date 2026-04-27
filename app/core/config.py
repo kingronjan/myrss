@@ -31,6 +31,11 @@ class Settings(BaseSettings):
     MAIL_SMTP_PORT: int | None = None
     MAIL_RECEIVER: str | None = None
 
+    # AI
+    MODEL: str | None = None
+    TEXT_CHUNK_SIZE: int = 1000
+    TEXT_CHUNK_OVERLAP: int = 200
+
     model_config = SettingsConfigDict(
         case_sensitive=True,
         env_file=BASE_DIR / '.env',
